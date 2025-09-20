@@ -2,7 +2,8 @@ import { ConflictException, Injectable, InternalServerErrorException, NotFoundEx
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Customer } from './customer.entity';
-import { CreateCustomerDto } from './create-customer.dto';
+import { CreateCustomerDto } from './dto/create-customer.dto';
+import { UpdateCustomerDto } from './dto/update-customer.dto';
 
 @Injectable()
 export class CustomersService {
@@ -48,12 +49,23 @@ export class CustomersService {
     }
   }
 
-  async update(id: number, data: Partial<Customer>): Promise<Customer> {
+  async update(id: number, updateDto: UpdateCustomerDto): Promise<Customer> {
+    const customer = await this.customersRepository.findOne({
+      where: { internalId: id },
+    });
+
+    if (!customer) {
+      throw new NotFoundException(`Customer with ID ${id} not found`);
+    }
+
     try {
-      await this.customersRepository.update(id, data);
-      return this.findOne(id);
+      Object.assign(customer, updateDto);
+      return await this.customersRepository.save(customer);
     } catch (error) {
-      throw new InternalServerErrorException('Something went wrong');
+      if (error.code === 'ER_DUP_ENTRY') {
+        throw new ConflictException('Phone number already exists');
+      }
+      throw new InternalServerErrorException('Something went wrong while updating customer');
     }
   }
 
