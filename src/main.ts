@@ -5,6 +5,7 @@ import {
   NestFastifyApplication,
 } from '@nestjs/platform-fastify';
 import { ValidationPipe } from '@nestjs/common';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestFastifyApplication>(
@@ -19,6 +20,22 @@ async function bootstrap() {
       transform: false, // Auto-convert types (e.g., string to number)
     }),
   );
+
+  const config = new DocumentBuilder()
+    .setTitle('Water Purifier API')
+    .setDescription('API documentation for Water Purifier Management System')
+    .setVersion('1.0')
+    .addTag('customers')
+    .addTag('payments')
+    .addTag('service-reminders')
+    .build();
+
+  const document = SwaggerModule.createDocument(app, config);
+
+  SwaggerModule.setup('swagger', app, document, {
+    jsonDocumentUrl: 'swagger/json', // optional: serve raw OpenAPI JSON
+  });
+
   await app.listen(process.env.PORT ?? 3000, '0.0.0.0');
   console.log('Fastify server running at http://localhost:3000');
 }
