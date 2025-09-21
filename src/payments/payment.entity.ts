@@ -18,10 +18,10 @@ export class Payment {
     @Column('decimal', { precision: 10, scale: 2 })
     rent_amount: number;
 
-    @Column('simple-array', { default: 'NOT PAID' })
+    @Column('simple-array', { nullable: true })
     deposite_status: string[]; // ['PAID','NOT PAID']
 
-    @Column('simple-array', { default: 'NOT PAID' })
+    @Column('simple-array', { nullable: true })
     rent_status: string[]; // ['PAID','NOT PAID']
 
     @Column({ nullable: true })
