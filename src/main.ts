@@ -6,6 +6,7 @@ import {
 } from '@nestjs/platform-fastify';
 import { ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { ConfigService } from '@nestjs/config';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestFastifyApplication>(
@@ -35,8 +36,9 @@ async function bootstrap() {
   SwaggerModule.setup('swagger', app, document, {
     jsonDocumentUrl: 'swagger/json', // optional: serve raw OpenAPI JSON
   });
-
-  await app.listen(process.env.PORT ?? 3000, '0.0.0.0');
+  const configService = app.get(ConfigService);
+  const port = configService.get<number>('PORT') || 3000;
+  await app.listen(port, '0.0.0.0');
   console.log('Fastify server running at http://localhost:3000');
 }
 bootstrap();

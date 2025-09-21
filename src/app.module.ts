@@ -7,18 +7,27 @@ import { ServiceRemindersModule } from './service-reminders/service-reminders.mo
 import { Customer } from './customers/customer.entity';
 import { Payment } from './payments/payment.entity';
 import { ServiceReminder } from './service-reminders/service-reminder.entity';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 
 @Module({
   imports: [
-    TypeOrmModule.forRoot({
-      type: 'mysql',
-      host: 'localhost',
-      port: 3306, // change if XAMPP MySQL uses another port
-      username: 'root',
-      password: '', // change if you set a password
-      database: 'phw_manage',
-      entities: [Customer, Payment, ServiceReminder],
-      synchronize: true, // auto-create tables (good for dev)
+    ConfigModule.forRoot({
+      isGlobal: true,
+      envFilePath: [`.env.${process.env.NODE_ENV || 'development'}`],
+    }),
+    TypeOrmModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => ({
+        type: 'mysql',
+        host: config.get<string>('MYSQL_HOST'),
+        port: config.get<number>('MYSQL_PORT'),
+        username: config.get<string>('MYSQL_USERNAME'),
+        password: config.get<string>('MYSQL_PASSWORD'),
+        database: config.get<string>('MYSQL_DATABASE'),
+        entities: [Customer, Payment, ServiceReminder],
+        synchronize: config.get<boolean>('MYSQL_SYNC'), // disable in prod
+      }),
     }),
     CustomersModule,
     PaymentsModule,
@@ -27,4 +36,4 @@ import { ServiceReminder } from './service-reminders/service-reminder.entity';
   controllers: [],
   providers: [AppService],
 })
-export class AppModule {}
+export class AppModule { }
