@@ -23,8 +23,8 @@ async function bootstrap() {
   );
 
   const config = new DocumentBuilder()
-    .setTitle('Water Purifier API')
-    .setDescription('API documentation for Water Purifier Management System')
+    .setTitle('Pure Home Waters API')
+    .setDescription('API documentation for Pure Home Waters Customer Management System')
     .setVersion('1.0')
     .addTag('customers')
     .addTag('payments')
