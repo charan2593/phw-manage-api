@@ -1,9 +1,10 @@
-import { Controller, Get, Post, Body, Param, Put } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Put, UseGuards, Request } from '@nestjs/common';
 import { CustomersService } from './customers.service';
 import { CreateCustomerDto } from './dto/create-customer.dto';
 import { UpdateCustomerDto } from './dto/update-customer.dto';
 import { ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Customer } from './customer.entity';
+import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 
 @ApiTags('customers')
 @Controller('customers')  // ← this defines the route prefix
@@ -25,8 +26,10 @@ export class CustomersController {
 
   @Post()
   @ApiResponse({ status: 200, description: 'Create New Customer', type: Customer })
-  create(@Body() customer: CreateCustomerDto) {
-    return this.customersService.create(customer);
+  @UseGuards(JwtAuthGuard)
+  create(@Body() customer: CreateCustomerDto, @Request() req) {
+    const user = req.user;
+    return this.customersService.create(customer, user);
   }
 
   @Put(':id')
