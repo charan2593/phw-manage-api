@@ -31,11 +31,15 @@ async function bootstrap() {
     .addTag('service-reminders')
     .build();
 
-  const document = SwaggerModule.createDocument(app, config);
+  // Only enable Swagger in development/staging
+  if (process.env.NODE_ENV !== 'production') {
+    // Swagger setup code
+    const document = SwaggerModule.createDocument(app, config);
+    SwaggerModule.setup('', app, document, {
+      jsonDocumentUrl: 'json', // optional: serve raw OpenAPI JSON
+    });
+  }
 
-  SwaggerModule.setup('swagger', app, document, {
-    jsonDocumentUrl: 'swagger/json', // optional: serve raw OpenAPI JSON
-  });
   const configService = app.get(ConfigService);
   const port = configService.get<number>('PORT') || 3000;
   await app.listen(port, '0.0.0.0');

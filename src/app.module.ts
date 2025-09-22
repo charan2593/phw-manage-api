@@ -8,6 +8,10 @@ import { Customer } from './customers/customer.entity';
 import { Payment } from './payments/payment.entity';
 import { ServiceReminder } from './service-reminders/service-reminder.entity';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { AuthModule } from './auth/auth.module';
+import { APP_GUARD } from '@nestjs/core';
+import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
+import { User } from './users/user.entity';
 
 @Module({
   imports: [
@@ -25,15 +29,22 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
         username: config.get<string>('MYSQL_USERNAME'),
         password: config.get<string>('MYSQL_PASSWORD'),
         database: config.get<string>('MYSQL_DATABASE'),
-        entities: [Customer, Payment, ServiceReminder],
+        entities: [Customer, Payment, ServiceReminder, User],
         synchronize: config.get<boolean>('MYSQL_SYNC'), // disable in prod
       }),
     }),
     CustomersModule,
     PaymentsModule,
-    ServiceRemindersModule
+    ServiceRemindersModule,
+    AuthModule
   ],
   controllers: [],
-  providers: [AppService],
+  providers: [
+    AppService,
+    {
+      provide: APP_GUARD,
+      useClass: JwtAuthGuard,
+    },
+  ],
 })
 export class AppModule { }

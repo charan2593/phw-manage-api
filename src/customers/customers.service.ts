@@ -1,15 +1,18 @@
-import { ConflictException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import { ConflictException, ConsoleLogger, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Customer } from './customer.entity';
 import { CreateCustomerDto } from './dto/create-customer.dto';
 import { UpdateCustomerDto } from './dto/update-customer.dto';
+import { User } from 'src/users/user.entity';
 
 @Injectable()
 export class CustomersService {
   constructor(
     @InjectRepository(Customer)
     private customersRepository: Repository<Customer>,
+    @InjectRepository(User)
+    private userRepository: Repository<User>,
   ) { }
 
   findAll(): Promise<Customer[]> {
@@ -32,13 +35,38 @@ export class CustomersService {
     }
   }
 
-  async create(customer: CreateCustomerDto): Promise<Customer> {
+  async create(customer: CreateCustomerDto, user?: User): Promise<Customer> {
+    const existing = await this.customersRepository.findOne({
+      where: { phone: customer.phone }
+    });
+
+    if (existing) {
+      throw new ConflictException('Phone number already exists');
+    }
+
     try {
+      let createdByUser: User | null = null;
+
+      if (user) {
+        // User is authenticated
+        createdByUser = user;
+      } else {
+        // No authentication - use default admin user
+        createdByUser = await this.userRepository.findOne({
+          where: { role: 'admin' }
+        });
+      }
+
+
       const savedCustomer = await this.customersRepository.save(customer);
       // generate custom customerId like phw-YYYYxx
       savedCustomer.customerId = `phw-${new Date().getFullYear()}${String(savedCustomer.internalId).padStart(2, '0')}`;
+      if (createdByUser) {
+        savedCustomer.createdBy = createdByUser;
+      }
       await this.customersRepository.update(savedCustomer.internalId, {
         customerId: savedCustomer.customerId,
+        createdBy: savedCustomer.createdBy
       });
       return savedCustomer;
     } catch (error) {

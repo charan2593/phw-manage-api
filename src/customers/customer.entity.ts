@@ -1,6 +1,7 @@
-import { Entity, PrimaryGeneratedColumn, Column, OneToMany, BeforeInsert } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, OneToMany, BeforeInsert, ManyToOne } from 'typeorm';
 import { Payment } from '../payments/payment.entity';
 import { ServiceReminder } from '../service-reminders/service-reminder.entity';
+import { User } from 'src/users/user.entity';
 
 @Entity()
 export class Customer {
@@ -33,4 +34,8 @@ export class Customer {
 
     @OneToMany(() => ServiceReminder, (sr) => sr.customer)
     serviceReminders: ServiceReminder[];
+
+    // 👇 ADD THIS FIELD
+    @ManyToOne(() => User, user => user.customers, { nullable: true })
+    createdBy: User;
 }
