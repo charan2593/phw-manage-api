@@ -41,7 +41,7 @@ async function bootstrap() {
   }
 
   const configService = app.get(ConfigService);
-  const port = configService.get<number>('PORT') || 3000;
+  const port = configService.get<number>('PORT') || process.env.PORT || 3000;
   await app.listen(port, '0.0.0.0');
   console.log('Fastify server running at http://localhost:3000');
 }
